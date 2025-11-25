@@ -1,0 +1,690 @@
+﻿<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8" />
+    <title>Julklappslotteri</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0.4em;
+            margin-bottom: 0.4em;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font: inherit;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .col {
+            flex: 1 1 200px;
+            min-width: 200px;
+        }
+
+        button {
+            font: inherit;
+            padding: 8px 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            background: #c62828;
+            color: #fff;
+            margin-right: 8px;
+            margin-top: 4px;
+        }
+
+            button.secondary {
+                background: #455a64;
+            }
+
+            button:disabled {
+                opacity: 0.6;
+                cursor: default;
+            }
+
+        .error {
+            display: none;
+            background: #ffebee;
+            color: #b71c1c;
+            border: 1px solid #ffcdd2;
+            border-radius: 4px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .info {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        th, td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: #fafafa;
+        }
+
+        .tagline {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        /* Resultatkort för export som bild */
+        #resultCard {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #ddd;
+        }
+
+        #resultTitle {
+            margin-top: 0;
+            margin-bottom: 4px;
+        }
+
+        #resultMeta {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+
+        #resultTable th,
+        #resultTable td {
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 600px) {
+            button {
+                width: 100%;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Julklappslotteri</h1>
+        <p class="tagline">
+            Fyll i deltagare, regler och eventuella redan köpta klappar. Låt sedan sidan lotta vem som köper till vem.
+        </p>
+
+        <div id="errorBox" class="error"></div>
+
+        <div class="card">
+            <h2>Inställningar</h2>
+            <div class="row">
+                <div class="col">
+                    <label for="titleInput">Rubrik för lottningen</label>
+                    <input id="titleInput" type="text" placeholder="Ex: Julklappslotteri 2025" />
+                </div>
+                <div class="col">
+                    <label for="giftsPerPersonInput">Antal julklappar per person</label>
+                    <input id="giftsPerPersonInput" type="number" min="1" step="1" value="1" />
+                </div>
+                <div class="col">
+                    <label for="totalValueInput">Totalt värde per person (kr)</label>
+                    <input id="totalValueInput" type="number" min="0" step="10" placeholder="Ex: 300" />
+                </div>
+            </div>
+
+            <label for="participantsInput">Deltagare (ett namn per rad)</label>
+            <textarea id="participantsInput" placeholder="Ex:
+Anna
+Johan
+Lisa
+Robin"></textarea>
+            <p class="info">
+                Alla namn måste vara unika. Minst två deltagare. Antal julklappar per person får inte vara större än antalet deltagare minus 1.
+            </p>
+            <button id="saveParticipantsBtn" class="secondary">Spara deltagare</button>
+        </div>
+
+        <div class="card">
+            <h2>Redan köpta klappar</h2>
+            <p class="info">
+                Här kan du låsa in köp som redan är gjorda. Dessa kommer att respekteras i lottningen.
+            </p>
+            <div class="row">
+                <div class="col">
+                    <label for="fixedFromSelect">Givare</label>
+                    <select id="fixedFromSelect">
+                        <option value="">— Välj —</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="fixedToSelect">Har redan köpt till</label>
+                    <select id="fixedToSelect">
+                        <option value="">— Välj —</option>
+                    </select>
+                </div>
+            </div>
+            <button id="addFixedPairBtn">Lägg till redan köpt klapp</button>
+
+            <table id="fixedPairsTable" aria-label="Redan köpta klappar">
+                <thead>
+                    <tr>
+                        <th>Givare</th>
+                        <th>Mottagare</th>
+                        <th>Ta bort</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Fylls via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Lotta</h2>
+            <p class="info">
+                När du klickar på knappen nedan skapas en slumpmässig men rättvis fördelning där varje person köper
+                lika många julklappar som de får. Ingen köper till sig själv. Redan köpta klappar respekteras.
+            </p>
+            <button id="drawButton">Lotta fram vem som köper till vem</button>
+            <button id="downloadImageBtn" class="secondary" disabled>Ladda ner resultat som bild</button>
+            <button id="copyTextBtn" class="secondary" disabled>Kopiera resultat som text</button>
+        </div>
+
+        <div class="card" id="resultWrapper" style="display:none;">
+            <div id="resultCard">
+                <h2 id="resultTitle"></h2>
+                <div id="resultMeta"></div>
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>Givare</th>
+                            <th>Köper till</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Fylls via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- html2canvas för att exportera resultatet som bild -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <script>
+    // Global state
+    let participants = [];
+    let fixedPairs = []; // { from: string, to: string }
+    let lastAssignments = null;
+    let lastMeta = { title: "", giftsPerPerson: 1, totalValue: NaN };
+
+    function showError(message) {
+      const box = document.getElementById("errorBox");
+      if (message) {
+        box.textContent = message;
+        box.style.display = "block";
+      } else {
+        box.textContent = "";
+        box.style.display = "none";
+      }
+    }
+
+    function parseParticipants(text) {
+      return text
+        .split("\n")
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function updateSelectOptions() {
+      const fromSelect = document.getElementById("fixedFromSelect");
+      const toSelect = document.getElementById("fixedToSelect");
+
+      const clearAndFill = (select) => {
+        select.innerHTML = "";
+        const optEmpty = document.createElement("option");
+        optEmpty.value = "";
+        optEmpty.textContent = "— Välj —";
+        select.appendChild(optEmpty);
+
+        participants.forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+      };
+
+      clearAndFill(fromSelect);
+      clearAndFill(toSelect);
+    }
+
+    function renderFixedPairsTable() {
+      const tbody = document.querySelector("#fixedPairsTable tbody");
+      tbody.innerHTML = "";
+      fixedPairs.forEach((pair, index) => {
+        const tr = document.createElement("tr");
+
+        const tdFrom = document.createElement("td");
+        tdFrom.textContent = pair.from;
+
+        const tdTo = document.createElement("td");
+        tdTo.textContent = pair.to;
+
+        const tdRemove = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.textContent = "Ta bort";
+        btn.className = "secondary";
+        btn.addEventListener("click", () => {
+          fixedPairs.splice(index, 1);
+          renderFixedPairsTable();
+        });
+        tdRemove.appendChild(btn);
+
+        tr.appendChild(tdFrom);
+        tr.appendChild(tdTo);
+        tr.appendChild(tdRemove);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function generateAssignments(participants, fixedPairs, giftsPerPerson) {
+      const n = participants.length;
+      if (giftsPerPerson < 1) {
+        throw new Error("Antalet julklappar per person måste vara minst 1.");
+      }
+      if (giftsPerPerson >= n) {
+        throw new Error("Antalet julklappar per person kan inte vara större än eller lika med antalet deltagare.");
+      }
+
+      // Init räknare
+      const giveCount = Object.create(null);
+      const receiveCount = Object.create(null);
+      const assignmentsByGiverBase = Object.create(null);
+
+      participants.forEach(name => {
+        giveCount[name] = 0;
+        receiveCount[name] = 0;
+        assignmentsByGiverBase[name] = [];
+      });
+
+      // Kontrollera och applicera redan köpta klappar
+      fixedPairs.forEach(pair => {
+        const from = pair.from;
+        const to = pair.to;
+
+        if (!participants.includes(from) || !participants.includes(to)) {
+          throw new Error("En redan köpt klapp hänvisar till ett namn som inte finns bland deltagarna.");
+        }
+        if (from === to) {
+          throw new Error("En person kan inte ha köpt julklapp till sig själv.");
+        }
+
+        // Undvik dubbletter för samma riktning
+        if (assignmentsByGiverBase[from].includes(to)) {
+          throw new Error("Samma 'redan köpt'-par är inlagt flera gånger.");
+        }
+
+        assignmentsByGiverBase[from].push(to);
+        giveCount[from]++;
+        receiveCount[to]++;
+      });
+
+      // Kontrollera kapacitet
+      const giverCapacity = Object.create(null);
+      const receiverCapacity = Object.create(null);
+
+      participants.forEach(name => {
+        if (giveCount[name] > giftsPerPerson) {
+          throw new Error("En person har fler 'redan köpta' klappar än vad de ska köpa totalt.");
+        }
+        if (receiveCount[name] > giftsPerPerson) {
+          throw new Error("En person har fler 'redan köpta' mottagna klappar än det maximala antalet.");
+        }
+        giverCapacity[name] = giftsPerPerson - giveCount[name];
+        receiverCapacity[name] = giftsPerPerson - receiveCount[name];
+      });
+
+      // Bygg listor över kvarvarande "slots"
+      const remainingSlots = []; // givar-slots
+      participants.forEach(name => {
+        for (let i = 0; i < giverCapacity[name]; i++) {
+          remainingSlots.push(name);
+        }
+      });
+
+      const receiverSlotsBase = []; // mottagar-slots
+      participants.forEach(name => {
+        for (let i = 0; i < receiverCapacity[name]; i++) {
+          receiverSlotsBase.push(name);
+        }
+      });
+
+      if (remainingSlots.length !== receiverSlotsBase.length) {
+        throw new Error("Internt fel: antalet givar- och mottagarplatser matchar inte.");
+      }
+
+      const maxAttempts = 5000;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const tempAssignments = {};
+        participants.forEach(name => {
+          tempAssignments[name] = assignmentsByGiverBase[name].slice();
+        });
+
+        const slots = shuffle(remainingSlots.slice());
+        const availableReceivers = receiverSlotsBase.slice();
+
+        let ok = true;
+
+        for (const giver of slots) {
+          const usedReceivers = new Set(tempAssignments[giver]);
+
+          // Hitta kandidater i availableReceivers
+          const candidateIndices = [];
+          for (let i = 0; i < availableReceivers.length; i++) {
+            const r = availableReceivers[i];
+            if (r === giver) continue; // inte till sig själv
+            if (usedReceivers.has(r)) continue; // inte samma mottagare två gånger
+            candidateIndices.push(i);
+          }
+
+          if (candidateIndices.length === 0) {
+            ok = false;
+            break;
+          }
+
+          const chosenIndex = candidateIndices[Math.floor(Math.random() * candidateIndices.length)];
+          const receiver = availableReceivers[chosenIndex];
+          tempAssignments[giver].push(receiver);
+          availableReceivers.splice(chosenIndex, 1);
+        }
+
+        if (ok) {
+          return tempAssignments; // { giverName: [receiver1, receiver2, ...] }
+        }
+      }
+
+      throw new Error("Kunde inte skapa en giltig lottning. Kontrollera 'redan köpta' klappar och försök igen.");
+    }
+
+    function renderResult(assignmentsByGiver, title, giftsPerPerson, totalValue) {
+      const wrapper = document.getElementById("resultWrapper");
+      const titleElem = document.getElementById("resultTitle");
+      const metaElem = document.getElementById("resultMeta");
+      const tbody = document.querySelector("#resultTable tbody");
+
+      const finalTitle = title && title.trim() ? title.trim() : "Julklappslotteri";
+      titleElem.textContent = finalTitle;
+
+      const metaParts = [];
+      metaParts.push("Antal julklappar per person: " + giftsPerPerson);
+      if (!isNaN(totalValue) && totalValue > 0) {
+        metaParts.push("Totalt värde per person: " + totalValue + " kr");
+      }
+      metaElem.textContent = metaParts.join(" · ");
+
+      tbody.innerHTML = "";
+      participants.forEach(giver => {
+        const receivers = assignmentsByGiver[giver] || [];
+        const tr = document.createElement("tr");
+
+        const tdGiver = document.createElement("td");
+        tdGiver.textContent = giver;
+
+        const tdReceivers = document.createElement("td");
+        tdReceivers.textContent = receivers.join(", ");
+
+        tr.appendChild(tdGiver);
+        tr.appendChild(tdReceivers);
+        tbody.appendChild(tr);
+      });
+
+      wrapper.style.display = "block";
+
+      document.getElementById("downloadImageBtn").disabled = false;
+      document.getElementById("copyTextBtn").disabled = false;
+
+      lastAssignments = assignmentsByGiver;
+      lastMeta = { title: finalTitle, giftsPerPerson, totalValue };
+    }
+
+    function downloadResultAsImage() {
+      const resultCard = document.getElementById("resultCard");
+      if (!resultCard) return;
+
+      html2canvas(resultCard).then(canvas => {
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = "julklappslotteri.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }).catch(err => {
+        console.error(err);
+        showError("Kunde inte skapa bild av resultatet.");
+      });
+    }
+
+    function buildResultText() {
+      if (!lastAssignments) {
+        throw new Error("Inget resultat att kopiera.");
+      }
+
+      const lines = [];
+      const title = lastMeta.title || "Julklappslotteri";
+      const g = lastMeta.giftsPerPerson;
+      const v = lastMeta.totalValue;
+
+      lines.push(title);
+      lines.push("Antal julklappar per person: " + g);
+      if (!isNaN(v) && v > 0) {
+        lines.push("Totalt värde per person: " + v + " kr");
+      }
+      lines.push(""); // tom rad
+
+      participants.forEach(giver => {
+        const receivers = lastAssignments[giver] || [];
+        lines.push(giver + " -> " + receivers.join(", "));
+      });
+
+      return lines.join("\n");
+    }
+
+    async function copyResultToClipboard() {
+      try {
+        const text = buildResultText();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // Fallback för äldre webbläsare
+          const temp = document.createElement("textarea");
+          temp.value = text;
+          temp.style.position = "fixed";
+          temp.style.left = "-9999px";
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          document.body.removeChild(temp);
+        }
+      } catch (err) {
+        console.error(err);
+        showError("Kunde inte kopiera resultatet. Du kan markera och kopiera manuellt från tabellen.");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const saveParticipantsBtn = document.getElementById("saveParticipantsBtn");
+      const addFixedPairBtn = document.getElementById("addFixedPairBtn");
+      const drawButton = document.getElementById("drawButton");
+      const downloadImageBtn = document.getElementById("downloadImageBtn");
+      const copyTextBtn = document.getElementById("copyTextBtn");
+
+      saveParticipantsBtn.addEventListener("click", () => {
+        showError("");
+        const raw = document.getElementById("participantsInput").value;
+        const list = parseParticipants(raw);
+
+        if (list.length < 2) {
+          showError("Minst två deltagare krävs.");
+          return;
+        }
+
+        // Kontrollera unika namn
+        const set = new Set(list);
+        if (set.size !== list.length) {
+          showError("Alla deltagare måste ha unika namn.");
+          return;
+        }
+
+        participants = list.slice();
+
+        // Ta bort fixedPairs som innehåller namn som inte längre finns
+        fixedPairs = fixedPairs.filter(p => participants.includes(p.from) && participants.includes(p.to));
+
+        updateSelectOptions();
+        renderFixedPairsTable();
+      });
+
+      addFixedPairBtn.addEventListener("click", () => {
+        showError("");
+        if (participants.length < 2) {
+          showError("Spara deltagare först innan du lägger till 'redan köpta' klappar.");
+          return;
+        }
+        const from = document.getElementById("fixedFromSelect").value;
+        const to = document.getElementById("fixedToSelect").value;
+
+        if (!from || !to) {
+          showError("Välj både givare och mottagare.");
+          return;
+        }
+        if (from === to) {
+          showError("En person kan inte ha köpt julklapp till sig själv.");
+          return;
+        }
+
+        if (fixedPairs.some(p => p.from === from && p.to === to)) {
+          showError("Detta par finns redan som 'redan köpt'.");
+          return;
+        }
+
+        fixedPairs.push({ from, to });
+        renderFixedPairsTable();
+      });
+
+      drawButton.addEventListener("click", () => {
+        showError("");
+        if (participants.length < 2) {
+          showError("Spara deltagare först.");
+          return;
+        }
+
+        const giftsPerPersonInput = document.getElementById("giftsPerPersonInput");
+        const totalValueInput = document.getElementById("totalValueInput");
+        const titleInput = document.getElementById("titleInput");
+
+        let giftsPerPerson = parseInt(giftsPerPersonInput.value, 10);
+        if (isNaN(giftsPerPerson) || giftsPerPerson < 1) {
+          showError("Antalet julklappar per person måste vara ett heltal på minst 1.");
+          return;
+        }
+
+        if (giftsPerPerson >= participants.length) {
+          showError("Antalet julklappar per person kan inte vara större än eller lika med antalet deltagare.");
+          return;
+        }
+
+        const totalValue = parseInt(totalValueInput.value, 10);
+        const title = titleInput.value;
+
+        let assignmentsByGiver;
+        try {
+          assignmentsByGiver = generateAssignments(participants, fixedPairs, giftsPerPerson);
+        } catch (err) {
+          showError(err.message || "Ett fel uppstod vid lottningen.");
+          return;
+        }
+
+        renderResult(assignmentsByGiver, title, giftsPerPerson, totalValue);
+      });
+
+      downloadImageBtn.addEventListener("click", () => {
+        downloadResultAsImage();
+      });
+
+      copyTextBtn.addEventListener("click", () => {
+        showError("");
+        copyResultToClipboard();
+      });
+    });
+    </script>
+</body>
+</html>
